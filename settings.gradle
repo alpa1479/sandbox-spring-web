@@ -1,0 +1,3 @@
+rootProject.name = "sandbox-spring-mvc"
+
+include "examples:online-library"
