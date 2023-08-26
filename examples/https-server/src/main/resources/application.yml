@@ -1,0 +1,15 @@
+server:
+  port: 8443
+  ssl:
+    # Properties to enable TLS:
+    enabled: true
+    protocol: TLS
+    key-store-type: ${KEYSTORE_TYPE:PKCS12}
+    key-store: ${KEYSTORE_PATH:classpath:certificates/keystore.p12}
+    key-store-password: ${KEYSTORE_PASSWORD:password}
+
+    # Additional properties to enable mTLS:
+    client-auth: need
+    trust-store-type: ${TRUSTSTORE_TYPE:PKCS12}
+    trust-store: ${TRUSTSTORE_PATH:classpath:certificates/truststore.p12}
+    trust-store-password: ${TRUSTSTORE_PASSWORD:password}

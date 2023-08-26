@@ -1,3 +1,4 @@
-rootProject.name = "sandbox-spring-mvc"
+rootProject.name = "sandbox-spring-web"
 
+include "examples:https-server"
 include "examples:online-library"
