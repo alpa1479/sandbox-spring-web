@@ -1,0 +1,32 @@
+plugins {
+    id "java"
+}
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.apache.commons:commons-lang3'
+    implementation 'org.apache.commons:commons-collections4:4.4'
+    implementation 'org.apache.httpcomponents.client5:httpclient5:5.2.1'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.with {
+        encoding = "UTF-8"
+    }
+}

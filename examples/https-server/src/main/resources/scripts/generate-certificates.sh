@@ -2,13 +2,13 @@
 
 CERT_DIR='../certificates'
 rm -rf $CERT_DIR
+mkdir $CERT_DIR
 
 CA_CERT_DIR=$CERT_DIR/ca
 INTERMEDIATE_CERT_DIR=$CERT_DIR/intermediate
 SERVER_CERT_DIR=$CERT_DIR/server
 CLIENT_CERT_DIR=$CERT_DIR/client
 
-mkdir $CERT_DIR
 mkdir $CA_CERT_DIR
 mkdir $INTERMEDIATE_CERT_DIR
 mkdir $SERVER_CERT_DIR
@@ -48,6 +48,15 @@ cat $SERVER_CERT_DIR/server-certificate.pem >>$SERVER_CERT_DIR/server-certificat
 # Creation of keystore with server certificate and private key
 openssl pkcs12 -export -in $SERVER_CERT_DIR/server-certificate-chain.pem -inkey $SERVER_CERT_DIR/server-private-key.key -passin pass:$PASSWORD -passout pass:$PASSWORD -name server -out $CERT_DIR/keystore.p12
 
+# Creation of truststore with CA certificate
+keytool -import -file $CA_CERT_DIR/ca-self-signed-certificate.pem -keystore $CERT_DIR/truststore.p12 -storetype PKCS12 -storepass $PASSWORD -noprompt -alias ca
+
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+# For https-client module:
+HTTP_CLIENT_CERT_DIR='../../../../../https-client/src/main/resources/certificates'
+rm -rf $HTTP_CLIENT_CERT_DIR
+mkdir $HTTP_CLIENT_CERT_DIR
+
 # Creation of client private key
 openssl genrsa -aes256 -passout pass:$PASSWORD -out $CLIENT_CERT_DIR/client-private-key.key 4096
 # Creation of client CSR using client private key
@@ -55,9 +64,12 @@ openssl req -new -key $CLIENT_CERT_DIR/client-private-key.key -passin pass:$PASS
 # Creation of client certificate using client CSR and client private key with CA certificate
 openssl x509 -req -in $CLIENT_CERT_DIR/client-certificate-signing-request.csr -CA $CA_CERT_DIR/ca-self-signed-certificate.pem -CAkey $CA_CERT_DIR/ca-private-key.key -passin pass:$PASSWORD -days $EXPIRATION_TIME -out $CLIENT_CERT_DIR/client-certificate.pem
 
-# Creation of truststore with CA certificate
-keytool -import -file $CA_CERT_DIR/ca-self-signed-certificate.pem -keystore $CERT_DIR/truststore.p12 -storetype PKCS12 -storepass $PASSWORD -noprompt -alias ca
+# Creation of keystore with client certificate
+openssl pkcs12 -export -in $CLIENT_CERT_DIR/client-certificate.pem -inkey $CLIENT_CERT_DIR/client-private-key.key -passin pass:$PASSWORD -passout pass:$PASSWORD -name client -out $HTTP_CLIENT_CERT_DIR/keystore.p12
+# Copying of truststore with CA certificate
+cp $CERT_DIR/truststore.p12 $HTTP_CLIENT_CERT_DIR/truststore.p12
 
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Utility commands:
 # ./generate-certificates.sh
 # openssl verify -CAfile ../certificates/ca/ca-self-signed-certificate.pem ../certificates/server/server-certificate-chain.pem

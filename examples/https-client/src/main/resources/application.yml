@@ -1,0 +1,7 @@
+application:
+  rest-client:
+    ssl:
+      keystore: ${KEYSTORE_PATH:classpath:certificates/keystore.p12}
+      keystore-password: ${KEYSTORE_PASSWORD:password}
+      truststore: ${TRUSTSTORE_PATH:classpath:certificates/truststore.p12}
+      truststore-password: ${TRUSTSTORE_PASSWORD:password}

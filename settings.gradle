@@ -1,4 +1,5 @@
 rootProject.name = "sandbox-spring-web"
 
+include "examples:https-client"
 include "examples:https-server"
 include "examples:online-library"
