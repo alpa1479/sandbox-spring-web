@@ -45,7 +45,7 @@ openssl x509 -req -in $SERVER_CERT_DIR/server-certificate-signing-request.csr -C
 cat $INTERMEDIATE_CERT_DIR/intermediate-certificate.pem >>$SERVER_CERT_DIR/server-certificate-chain.pem
 cat $SERVER_CERT_DIR/server-certificate.pem >>$SERVER_CERT_DIR/server-certificate-chain.pem
 
-# Creation of keystore with server certificate and private key
+# Creation of keystore with server certificate chain and private key
 openssl pkcs12 -export -in $SERVER_CERT_DIR/server-certificate-chain.pem -inkey $SERVER_CERT_DIR/server-private-key.key -passin pass:$PASSWORD -passout pass:$PASSWORD -name server -out $CERT_DIR/keystore.p12
 
 # Creation of truststore with CA certificate
@@ -71,7 +71,42 @@ cp $CERT_DIR/truststore.p12 $HTTP_CLIENT_CERT_DIR/truststore.p12
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Utility commands:
+
+# cd examples/https-server/src/main/resources/scripts/
 # ./generate-certificates.sh
 # openssl verify -CAfile ../certificates/ca/ca-self-signed-certificate.pem ../certificates/server/server-certificate-chain.pem
 # openssl x509 -noout -text -in ../certificates/ca/ca-self-signed-certificate.pem
 # openssl x509 -noout -text -in ../certificates/intermediate/intermediate-certificate.pem
+# openssl s_client -showcerts -connect google.com:443
+
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Manual certificate validation:
+
+# Extraction of the public key from CA certificate
+# 1. openssl x509 -in ./intermediate-certificate.pem -noout -pubkey > ./intermediate-certificate-public-key.pem
+
+# 2. Extraction of the certificate signature
+# openssl x509 -in ./server-certificate.pem -text -noout -certopt ca_default,no_validity,no_serial,no_subject,no_extensions,no_signame \
+# | grep -v 'Signature Algorithm' \
+# | tr -d '[:space:]:' \
+# | xxd -r -p > ./certificate-signature.bin
+
+# 3. Decryption of the signature using public key
+# openssl rsautl -verify -inkey ./intermediate-certificate-public-key.pem -in ./certificate-signature.bin -pubin > ./certificate-signature-decrypted.bin
+
+# 4. Utility command to print the signature
+# openssl asn1parse -inform der -in ./certificate-signature-decrypted.bin
+# Example output:
+#    0:d=0  hl=2 l=  49 cons: SEQUENCE
+#    2:d=1  hl=2 l=  13 cons: SEQUENCE
+#    4:d=2  hl=2 l=   9 prim: OBJECT            :sha256
+#   15:d=2  hl=2 l=   0 prim: NULL
+#   17:d=1  hl=2 l=  32 prim: OCTET STRING      [HEX DUMP]:932647B661D98F78742485B68287FDDF969FC0F28C272AFACB1DFEA4D9D7893F
+
+# 5. Extraction of certificate body (all data except signature)
+# openssl asn1parse -i -in ./server-certificate.pem -strparse 4 -out ./server-certificate-body.bin -noout
+
+# 6. Recomputing hash of certificate body to verify that is has the same value as in signature. If hash is the same, it means that intermediate CA signed server-certificate
+# openssl dgst -sha256 ./server-certificate-body.bin
+# Example output:
+# SHA256(./server-certificate-body.bin)= 932647b661d98f78742485b68287fddf969fc0f28c272afacb1dfea4d9d7893f
