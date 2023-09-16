@@ -79,21 +79,20 @@ cp $CERT_DIR/truststore.p12 $HTTP_CLIENT_CERT_DIR/truststore.p12
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Manual certificate validation:
+# 1. Extraction of the public key from CA certificate:
+#openssl x509 -in ../server/src/main/resources/certificates/intermediate/intermediate-certificate.pem -noout -pubkey > ../server/src/main/resources/certificates/intermediate/intermediate-certificate-public-key.pem
 
-# Extraction of the public key from CA certificate
-# 1. openssl x509 -in $INTERMEDIATE_CERT_DIR/intermediate-certificate.pem -noout -pubkey > $INTERMEDIATE_CERT_DIR/intermediate-certificate-public-key.pem
+# 2. Extraction of the certificate signature:
+#openssl x509 -in ../server/src/main/resources/certificates/server/server-certificate.pem -text -noout -certopt ca_default,no_validity,no_serial,no_subject,no_extensions,no_signame |
+#  grep -v 'Signature Algorithm' |
+#  tr -d '[:space:]:' |
+#  xxd -r -p >../server/src/main/resources/certificates/server/server-signature.bin
 
-# 2. Extraction of the certificate signature
-# openssl x509 -in $SERVER_CERT_DIR/server-certificate.pem -text -noout -certopt ca_default,no_validity,no_serial,no_subject,no_extensions,no_signame \
-# | grep -v 'Signature Algorithm' \
-# | tr -d '[:space:]:' \
-# | xxd -r -p > $SERVER_CERT_DIR/server-signature.bin
+# 3. Decryption of the signature using public key:
+#openssl rsautl -verify -inkey ../server/src/main/resources/certificates/intermediate/intermediate-certificate-public-key.pem -in ../server/src/main/resources/certificates/server/server-signature.bin -pubin >../server/src/main/resources/certificates/server/server-signature-decrypted.bin
 
-# 3. Decryption of the signature using public key
-# openssl rsautl -verify -inkey $INTERMEDIATE_CERT_DIR/intermediate-certificate-public-key.pem -in $SERVER_CERT_DIR/server-signature.bin -pubin > $SERVER_CERT_DIR/server-signature-decrypted.bin
-
-# 4. Utility command to print the signature
-# openssl asn1parse -inform der -in $SERVER_CERT_DIR/server-signature-decrypted.bin
+# 4. Utility command to print the signature:
+#openssl asn1parse -inform der -in ../server/src/main/resources/certificates/server/server-signature-decrypted.bin
 # Example output:
 #    0:d=0  hl=2 l=  49 cons: SEQUENCE
 #    2:d=1  hl=2 l=  13 cons: SEQUENCE
@@ -101,10 +100,10 @@ cp $CERT_DIR/truststore.p12 $HTTP_CLIENT_CERT_DIR/truststore.p12
 #   15:d=2  hl=2 l=   0 prim: NULL
 #   17:d=1  hl=2 l=  32 prim: OCTET STRING      [HEX DUMP]:932647B661D98F78742485B68287FDDF969FC0F28C272AFACB1DFEA4D9D7893F
 
-# 5. Extraction of certificate body (all data except signature)
-# openssl asn1parse -i -in $SERVER_CERT_DIR/server-certificate.pem -strparse 4 -out $SERVER_CERT_DIR/server-certificate-body.bin -noout
+# 5. Extraction of certificate body (all data except signature):
+#openssl asn1parse -i -in ../server/src/main/resources/certificates/server/server-certificate.pem -strparse 4 -out ../server/src/main/resources/certificates/server/server-certificate-body.bin -noout
 
-# 6. Recomputing hash of certificate body to verify that is has the same value as in signature. If hash is the same, it means that intermediate CA signed server-certificate
-# openssl dgst -sha256 $SERVER_CERT_DIR/server-certificate-body.bin
+# 6. Recomputing hash of certificate body to verify that is has the same value as in signature. If hash is the same, it means that intermediate CA signed server-certificate:
+#openssl dgst -sha256 ../server/src/main/resources/certificates/server/server-certificate-body.bin
 # Example output:
 # SHA256(./server-certificate-body.bin)= 932647b661d98f78742485b68287fddf969fc0f28c272afacb1dfea4d9d7893f
