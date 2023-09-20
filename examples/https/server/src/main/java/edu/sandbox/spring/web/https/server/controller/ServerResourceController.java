@@ -1,7 +1,7 @@
 package edu.sandbox.spring.web.https.server.controller;
 
-import edu.sandbox.spring.web.https.server.services.ServerResourceService;
 import edu.sandbox.spring.web.https.server.dto.ServerResource;
+import edu.sandbox.spring.web.https.server.services.ServerResourceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

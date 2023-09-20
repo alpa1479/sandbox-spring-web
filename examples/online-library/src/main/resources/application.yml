@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/library
-    username: usr
-    password: pwd
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:library}
+    username: ${POSTGRES_USER:usr}
+    password: ${POSTGRES_PASSWORD:pwd}
 
 logging:
   level:

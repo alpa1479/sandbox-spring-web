@@ -37,7 +37,7 @@ class AuthorRestControllerTest {
 
         given(authorsService.findAll()).willReturn(authors);
 
-        mvc.perform(get("/api/v1/authors").contentType(MediaType.APPLICATION_JSON))
+        mvc.perform(get("/api/v1/authors?limit=5&offset=10").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(mapper.writeValueAsString(authors)));

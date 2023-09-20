@@ -6,13 +6,14 @@ import edu.sandbox.spring.web.onlinelibrary.dto.BookDto;
 import edu.sandbox.spring.web.onlinelibrary.repository.BookRepository;
 import edu.sandbox.spring.web.onlinelibrary.services.BooksService;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +27,7 @@ public class BooksServiceImpl implements BooksService {
     @Transactional(readOnly = true)
     public List<BookDto> findAll() {
         var books = bookRepository.findAll();
-        if (CollectionUtils.isNotEmpty(books)) {
+        if (!isEmpty(books)) {
             books.stream().map(Book::getAuthors).forEach(Hibernate::initialize);
         }
         return toBookDtoConverter.convert(books);
